@@ -9,6 +9,7 @@ package com.nattguld.mail;
 public enum MailType {
 	
 	DISPOSABLE,
+	GMAIL_DOT_TRICK,
 	IMPORTED
 
 }
