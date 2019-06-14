@@ -57,7 +57,7 @@ public class MailContainer extends JsonResource {
 	}
 	
 	@Override
-	protected String getSaveDirPath() {
+	protected String getSaveDirName() {
 		return "mail" + File.separator + "containers";
 	}
 

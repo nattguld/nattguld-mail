@@ -106,7 +106,7 @@ public class IMAPDetails extends JsonResource {
 	}
 	
 	@Override
-	protected String getSaveDirPath() {
+	protected String getSaveDirName() {
 		return "mail" + File.separator + "imap_details";
 	}
 
