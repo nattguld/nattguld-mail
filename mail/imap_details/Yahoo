@@ -1,0 +1,11 @@
+{
+  "name": "Yahoo",
+  "default_service": true,
+  "imap_address": "imap.mail.yahoo.com",
+  "imap_port": 993,
+  "inbox_folder": "Inbox",
+  "spam_folder": "Bulk Mail",
+  "domains": [
+    "yahoo"
+  ]
+}

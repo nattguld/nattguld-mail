@@ -42,7 +42,7 @@ public class IMAPClient extends EmailClient<IMAPInbox> {
 	public IMAPClient(IMAPInbox inbox) {
 		super(inbox);
 	}
-	
+
 	@Override
 	public List<String> extractLinks(String sender, String subject, String verifier) {
 		List<Message> emailMessages = new ArrayList<>();
@@ -55,10 +55,11 @@ public class IMAPClient extends EmailClient<IMAPInbox> {
 			Folder folder = getInbox().openFolder(folderName);
 			
 			if (Objects.isNull(folder)) {
+				getInbox().getLogger().error("Failed to open folder: " + folderName);
 				return null;
 			}
 			Message messages[] = folder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
-
+			
 			/*FetchProfile fp = new FetchProfile();
 	    	fp.add(FetchProfile.Item.ENVELOPE);
 	    	fp.add(FetchProfile.Item.CONTENT_INFO);*/

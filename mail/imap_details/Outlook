@@ -1,0 +1,12 @@
+{
+  "name": "Outlook",
+  "default_service": true,
+  "imap_address": "imap-mail.outlook.com",
+  "imap_port": 993,
+  "inbox_folder": "Inbox",
+  "spam_folder": "Junk",
+  "domains": [
+    "outlook",
+    "hotmail"
+  ]
+}

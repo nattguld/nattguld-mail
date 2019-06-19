@@ -93,6 +93,8 @@ public abstract class EmailClient<T extends EmailInbox> {
 	public List<String> getConfirmationLinks(String sender, String subject, String verifier, int timeout) {
 		int timeElapsed = 0;
 		
+		Misc.sleep(15000);
+		
 		while (timeElapsed <= timeout) {
 			timeElapsed += 15;
 			

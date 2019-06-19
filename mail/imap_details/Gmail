@@ -1,0 +1,12 @@
+{
+  "name": "Gmail",
+  "default_service": true,
+  "imap_address": "imap.gmail.com",
+  "imap_port": 993,
+  "inbox_folder": "INBOX",
+  "spam_folder": "[Gmail]/Spam",
+  "domains": [
+    "gmail",
+    "googlemail"
+  ]
+}
