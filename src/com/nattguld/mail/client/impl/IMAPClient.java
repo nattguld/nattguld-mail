@@ -1,11 +1,13 @@
 package com.nattguld.mail.client.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
 import javax.mail.Address;
+import javax.mail.FetchProfile;
 import javax.mail.Flags;
 import javax.mail.Folder;
 import javax.mail.Message;
@@ -60,11 +62,24 @@ public class IMAPClient extends EmailClient<IMAPInbox> {
 			}
 			Message messages[] = folder.search(new FlagTerm(new Flags(Flags.Flag.SEEN), false));
 			
+			FetchProfile fp = new FetchProfile();
+	    	fp.add(FetchProfile.Item.ENVELOPE);
+	    	fp.add(FetchProfile.Item.CONTENT_INFO);
+	    	
+			folder.fetch(messages, fp);
+			
 			/*FetchProfile fp = new FetchProfile();
 	    	fp.add(FetchProfile.Item.ENVELOPE);
 	    	fp.add(FetchProfile.Item.CONTENT_INFO);*/
 			
 			try {
+				Arrays.sort(messages, ( m1, m2 ) -> {
+					try {
+						return m2.getSentDate().compareTo( m1.getSentDate() );
+					} catch ( MessagingException e ) {
+						throw new RuntimeException( e );
+					}
+				});
 				for (int i = 0; i < messages.length; i ++) {
 					Message message = messages[i];
 					Address[] a = message.getFrom();
