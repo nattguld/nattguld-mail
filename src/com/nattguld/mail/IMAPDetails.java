@@ -183,4 +183,9 @@ public class IMAPDetails extends JsonResource {
 		return getName();
 	}
 
+	@Override
+	protected String getUUID() {
+		return null;
+	}
+
 }

@@ -1,9 +1,9 @@
-package com.nattguld.mail.client;
+package com.nattguld.mail.client.connections;
 
 import java.util.List;
 import java.util.Objects;
 
-import com.nattguld.mail.inbox.EmailInbox;
+import com.nattguld.mail.client.MailClient;
 import com.nattguld.util.Misc;
 
 /**
@@ -12,22 +12,18 @@ import com.nattguld.util.Misc;
  *
  */
 
-public abstract class EmailClient<T extends EmailInbox> {
+public abstract class MailClientConnection {
 	
 	/**
-	 * The accessed email inbox.
+	 * Whether we checked junk or not.
 	 */
-	private final T inbox;
-	
+	private boolean checkedJunk;
 	
 	/**
-	 * Creates a new email client.
-	 * 
-	 * @param inbox The email inbox the client is accessing.
+	 * The email client we're connected to.
 	 */
-	public EmailClient(T inbox) {
-		this.inbox = inbox;
-	}
+	private MailClient client;
+	
 	
 	/**
 	 * Gets a link from an email message.
@@ -103,11 +99,11 @@ public abstract class EmailClient<T extends EmailInbox> {
 			List<String> extractedLinks = extractLinks(sender, subject, verifier);
 			
 			if (Objects.nonNull(extractedLinks) && !extractedLinks.isEmpty()) {
-				dispose();
+				disconnect();
 				return extractedLinks;
 			}
 		}
-		dispose();
+		disconnect();
 		return null;
 	}
 	
@@ -124,18 +120,50 @@ public abstract class EmailClient<T extends EmailInbox> {
 	 */
 	protected abstract List<String> extractLinks(String sender, String subject, String verifier);
 	
-    /**
-     * Disposes the client's inbox connect.
-     */
-    public abstract void dispose();
+	/**
+	 * Disconnects the connection to the email client.
+	 */
+	protected void disconnect() {
+		client.removeConnection(this);
+	}
 	
 	/**
-	 * Retrieves the accessed email inbox.
+	 * Creates a new email client connection.
 	 * 
-	 * @return The inbox.
+	 * @param client The email client.
 	 */
-	public T getInbox() {
-		return inbox;
+	public MailClientConnection(MailClient client) {
+		this.client = client;
+	}
+	
+	/**
+	 * Modifies whether we checked junk or not.
+	 * 
+	 * @param checkedJunk The new state.
+	 * 
+	 * @return The connection.
+	 */
+	public MailClientConnection setCheckedJunk(boolean checkedJunk) {
+		this.checkedJunk = checkedJunk;
+		return this;
+	}
+	
+	/**
+	 * Retrieves whether we checked junk or not.
+	 * 
+	 * @return The result.
+	 */
+	public boolean hasCheckedJunk() {
+		return checkedJunk;
+	}
+	
+	/**
+	 * Retrieves the client we're connected to.
+	 * 
+	 * @return The client.
+	 */
+	public MailClient getClient() {
+		return client;
 	}
 
 }
