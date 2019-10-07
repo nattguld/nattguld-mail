@@ -3,10 +3,8 @@ package com.nattguld.mail.client.connections.impl;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.mail.Address;
@@ -27,6 +25,7 @@ import org.jsoup.nodes.Element;
 import com.nattguld.mail.client.MailClient;
 import com.nattguld.mail.client.connections.MailClientConnection;
 import com.nattguld.mail.client.impl.IMAPClient;
+import com.nattguld.util.text.TextUtil;
 
 /**
  * 
@@ -36,13 +35,7 @@ import com.nattguld.mail.client.impl.IMAPClient;
 
 public class IMAPConnection extends MailClientConnection {
 
-
-	/**
-     * Regex for url's.
-     */
-    protected static final String URL_REGEX = "((https?|ftp|gopher|telnet|file):((//)|(\\\\))+[\\w\\d:#@%/;$()~_?\\+-=\\\\\\.&]*[-a-zA-Z0-9+&@#/%=~_|])";
-    
-    
+	
     /**
      * Creates a new IMAP connection.
      * 
@@ -259,13 +252,9 @@ public class IMAPConnection extends MailClientConnection {
 			return extractFromHTML(Jsoup.parse(contentStr), verifier);
 		}
 		List<String> extractedLinks = new ArrayList<>();
-
-		Pattern pattern = Pattern.compile(URL_REGEX, Pattern.CASE_INSENSITIVE);
-		Matcher urlMatcher = pattern.matcher(contentStr);
-
-		while (urlMatcher.find()) {
-			String url = contentStr.substring(urlMatcher.start(0), urlMatcher.end(0));
-
+		List<String> extractedUrls = TextUtil.extractUrls(contentStr);
+		
+		for (String url : extractedUrls) {
 			if (url.contains(verifier)) {
 				extractedLinks.add(url);
 			}

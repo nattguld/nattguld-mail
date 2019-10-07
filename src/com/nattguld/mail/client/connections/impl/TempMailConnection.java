@@ -9,7 +9,7 @@ import org.jsoup.nodes.Element;
 import com.nattguld.http.requests.impl.GetRequest;
 import com.nattguld.http.response.RequestResponse;
 import com.nattguld.mail.client.MailClient;
-import com.nattguld.mail.client.connections.MailClientConnection;
+import com.nattguld.mail.client.connections.DisposableMailConnection;
 import com.nattguld.mail.client.impl.TempMailClient;
 
 /**
@@ -18,7 +18,7 @@ import com.nattguld.mail.client.impl.TempMailClient;
  *
  */
 
-public class TempMailConnection extends MailClientConnection {
+public class TempMailConnection extends DisposableMailConnection {
 
 	
 	/**

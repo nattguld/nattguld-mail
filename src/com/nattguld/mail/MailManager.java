@@ -9,14 +9,24 @@ import java.util.function.Predicate;
 
 import com.nattguld.data.json.JsonReader;
 import com.nattguld.data.json.JsonResourceManager;
+import com.nattguld.mail.client.DisposableMailClient;
 import com.nattguld.mail.client.MailClient;
+import com.nattguld.mail.client.connections.DisposableMailConnection;
 import com.nattguld.mail.client.connections.MailClientConnection;
+import com.nattguld.mail.client.connections.impl.AsdasdMailConnection;
+import com.nattguld.mail.client.connections.impl.FakeTempMailConnection;
 import com.nattguld.mail.client.connections.impl.IMAPConnection;
 import com.nattguld.mail.client.connections.impl.ManualConnection;
+import com.nattguld.mail.client.connections.impl.SuteJPConnection;
 import com.nattguld.mail.client.connections.impl.TempMailConnection;
+import com.nattguld.mail.client.connections.impl.TijdelijkeEmailConnection;
+import com.nattguld.mail.client.impl.AsdasdMailClient;
+import com.nattguld.mail.client.impl.FakeTempMailClient;
 import com.nattguld.mail.client.impl.IMAPClient;
 import com.nattguld.mail.client.impl.ManualMailClient;
+import com.nattguld.mail.client.impl.SuteJPClient;
 import com.nattguld.mail.client.impl.TempMailClient;
+import com.nattguld.mail.client.impl.TijdelijkeEmailClient;
 import com.nattguld.util.files.FileOperations;
 import com.nattguld.util.generics.kvps.impl.StringKeyValuePair;
 
@@ -116,63 +126,11 @@ public class MailManager extends JsonResourceManager<IMAPDetails> {
 	 * @return The connection.
 	 */
 	public IMAPConnection connectToIMAPClient(MailType mailType, StringKeyValuePair creds) {
-		return (IMAPConnection)connectToClient(mailType, creds);
-	}
-	
-	/**
-	 * Attempts to connect to a temp mail email client.
-	 * 
-	 * @return The connection.
-	 */
-	public TempMailConnection connectToTempMailClient() {
-		return (TempMailConnection)connectToClient(MailType.DISPOSABLE, null);
-	}
-	
-	/**
-	 * Attempts to connect to a manual. email client.
-	 * 
-	 * @return The connection.
-	 */
-	public ManualConnection connectToManualClient() {
-		return (ManualConnection)connectToClient(MailType.MANUAL, null);
-	}
-	
-	/**
-	 * Attempts to connect to an email client.
-	 * 
-	 * @param mailType The mail type.
-	 * 
-	 * @param creds The email credentials.
-	 * 
-	 * @return The email client connection.
-	 */
-	public MailClientConnection connectToClient(MailType mailType, StringKeyValuePair creds) {
+		if (mailType == MailType.DISPOSABLE || mailType == MailType.MANUAL) {
+			System.err.println("Can not open " + mailType.getName() + " as IMAP connection");
+			return null;
+		}
 		try {
-			if (Objects.isNull(creds)) {
-				if (mailType == MailType.DISPOSABLE) {
-					creds = new StringKeyValuePair("temp-mail.org", "temp-mail.org");
-					
-				} else if (mailType == MailType.MANUAL) {
-					creds = new StringKeyValuePair("Manual", "Manual");
-					
-				} else {
-					System.err.println("[" + mailType.toString() + "] No email credentials provided!");
-					return null;
-				}
-			}
-			if (mailType == MailType.MANUAL) {
-				ManualMailClient client = new ManualMailClient(creds);
-				return new ManualConnection(client);
-			}
-			if (mailType == MailType.DISPOSABLE) {
-				TempMailClient client = new TempMailClient(creds);
-				
-				if (!client.open()) {
-					System.err.println("[" + mailType.toString() + "] Failed to open inbox");
-					return null;
-				}
-				return new TempMailConnection(client);
-			}
 			String[] addressArgs = creds.getKey().split("@");
 			
 			if (addressArgs.length != 2) {
@@ -207,14 +165,87 @@ public class MailManager extends JsonResourceManager<IMAPDetails> {
 				}
 				activeClients.add(client);
 			}
-			MailClientConnection connection = mailType == MailType.DISPOSABLE ? new TempMailConnection(client) : new IMAPConnection(client);
+			IMAPConnection connection = new IMAPConnection(client);
 			client.addConnection(connection);
 			return connection;
 			
 		} catch (Exception ex) {
 			ex.printStackTrace();
+		}
+		return null;
+	}
+	
+	/**
+	 * Attempts to connect to a temp mail email client.
+	 * 
+	 * @return The connection.
+	 */
+	public DisposableMailConnection connectToDisposableClient(DisposableMailType det) {
+		try {
+			DisposableMailClient client = null;
+			
+			switch (det) {
+			case ASDASD:
+				client = new AsdasdMailClient();
+				break;
+				
+			case TIJDELIJKE_EMAIL:
+				client = new TijdelijkeEmailClient();
+				break;
+				
+			case SUTE:
+				client = new SuteJPClient();
+				break;
+				
+			case TEMP_MAIL:
+				client = new TempMailClient();
+				break;
+				
+			case FAKE_TEMP_MAIL:
+				client = new FakeTempMailClient();
+				break;
+				
+			default:
+				System.err.println(det.getName() + " not supported");
+				return null;
+			}
+			if (!client.open()) {
+				System.err.println("[" + det.getName() + "] Failed to open inbox");
+				return null;
+			}
+			switch (det) {
+			case ASDASD:
+				return new AsdasdMailConnection(client);
+				
+			case TIJDELIJKE_EMAIL:
+				return new TijdelijkeEmailConnection(client);
+				
+			case SUTE:
+				return new SuteJPConnection(client);
+				
+			case TEMP_MAIL:
+				return new TempMailConnection(client);
+				
+			case FAKE_TEMP_MAIL:
+				return new FakeTempMailConnection(client);
+				
+			default:
+				System.err.println(det.getName() + " has no known client instance");
+				return null;
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
 			return null;
 		}
+	}
+	
+	/**
+	 * Attempts to connect to a manual. email client.
+	 * 
+	 * @return The connection.
+	 */
+	public ManualConnection connectToManualClient() {
+		return new ManualConnection(new ManualMailClient());
 	}
 	
 	/**
@@ -292,28 +323,45 @@ public class MailManager extends JsonResourceManager<IMAPDetails> {
 	 * 
 	 * @return The mail manager.
 	 */
-	public List<String> filterIMAPMails(String importPath) {
-		List<String> valid = new ArrayList<>();
+	public List<StringKeyValuePair> filterIMAPMails(String importPath) {
+		List<StringKeyValuePair> valid = new ArrayList<>();
 		
-		for (String line : FileOperations.read(importPath)) {
-			String format = line.trim();
-			
-			if (format.isEmpty()) {
-				continue;
-			}
-			String[] args = format.split(":");
-			
-			if (Objects.isNull(args) || args.length != 2) {
-				continue;
-			}
-			MailClientConnection mcc = connectToIMAPClient(MailType.IMPORTED, new StringKeyValuePair(args[0], args[1]));
+		for (StringKeyValuePair skvp : importMailCreds(importPath)) {
+			MailClientConnection mcc = connectToIMAPClient(MailType.IMPORTED, skvp);
 			
 			if (Objects.isNull(mcc)) {
 				continue;
 			}
-			valid.add(format);
+			valid.add(skvp);
 		}
 		return valid;
+	}
+	
+	/**
+	 * Retrieves imported mail credentials.
+	 * 
+	 * @param importPath The import path.
+	 * 
+	 * @return The mail credentials.
+	 */
+	public List<StringKeyValuePair> importMailCreds(String importPath) {
+		List<StringKeyValuePair> emailCreds = new ArrayList<>();
+		
+		if (Objects.isNull(importPath)) {
+			return new ArrayList<>();
+		}
+		for (String line : FileOperations.read(importPath)) {
+			String format = line.trim();
+			
+			if (format.isEmpty() || !format.contains("@") || !format.contains(":")) {
+				continue;
+			}
+			String username = format.substring(0, format.indexOf(":")).trim();
+			String password = format.substring(format.indexOf(":") + 1, format.length()).trim();
+			
+			emailCreds.add(new StringKeyValuePair(username, password));
+		}
+		return emailCreds;
 	}
 	
 	/**

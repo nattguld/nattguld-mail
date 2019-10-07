@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -35,6 +36,11 @@ public class MailContainer extends JsonResource {
 	private final MailType mailType;
 	
 	/**
+	 * The disposable email type if any.
+	 */
+	private final DisposableMailType det;
+	
+	/**
 	 * The email credentials.
 	 */
 	private final Deque<StringKeyValuePair> emailCreds;
@@ -44,11 +50,36 @@ public class MailContainer extends JsonResource {
 	 * Creates a new mail container.
 	 * 
 	 * @param mailType The mail type.
+	 * 
+	 * @param det The disposable email type if any.
 	 */
-	public MailContainer(MailType mailType) {
+	public MailContainer(MailType mailType, DisposableMailType det) {
+		this(mailType, det, new ArrayDeque<StringKeyValuePair>());
+	}
+	
+	/**
+	 * Creates a new mail container.
+	 * 
+	 * @param emailCreds The email credentials.
+	 */
+	public MailContainer(Deque<StringKeyValuePair> emailCreds) {
+		this(MailType.IMPORTED, null, emailCreds);
+	}
+	
+	/**
+	 * Creates a new mail container.
+	 * 
+	 * @param mailType The mail type.
+	 * 
+	 * @param det The disposable email type if any.
+	 * 
+	 * @param emailCreds The email credentials.
+	 */
+	public MailContainer(MailType mailType, DisposableMailType det, Deque<StringKeyValuePair> emailCreds) {
 		this.uuid = Maths.getUniqueId();
 		this.mailType = mailType;
-		this.emailCreds = new ArrayDeque<>();
+		this.det = det;
+		this.emailCreds = emailCreds;
 		
 		if (mailType == MailType.DISPOSABLE || mailType == MailType.MANUAL) {
 			emailCreds.add(new StringKeyValuePair("na", "na"));
@@ -65,6 +96,7 @@ public class MailContainer extends JsonResource {
 		
 		this.uuid = getReader().getAsString("uuid");
 		this.mailType = (MailType)getReader().getAsObject("mail_type", MailType.class, MailType.IMPORTED);
+		this.det = (DisposableMailType)getReader().getAsObject("disposable_mail_type", DisposableMailType.class, null);
 		this.emailCreds = getReader().getAsDeque("email_credentials", new TypeToken<Deque<StringKeyValuePair>>() {}.getType(), new ArrayDeque<StringKeyValuePair>());
 	}
 	
@@ -72,6 +104,7 @@ public class MailContainer extends JsonResource {
 	protected void write(JsonWriter writer) {
 		writer.write("uuid", uuid);
 		writer.write("mail_type", mailType);
+		writer.write("disposable_mail_type", det);
 		writer.write("email_credentials", emailCreds);
 	}
 	
@@ -83,20 +116,6 @@ public class MailContainer extends JsonResource {
 	@Override
 	protected String getSaveFileName() {
 		return getUUID();
-	}
-	
-	/**
-	 * Adds email credentials.
-	 * 
-	 * @param emailCreds The email credentials.
-	 * 
-	 * @return The email container.
-	 */
-	public MailContainer addEmailCreds(List<StringKeyValuePair> emailCreds) {
-		this.emailCreds.addAll(emailCreds);
-		
-		save();
-		return this;
 	}
 	
 	/**
@@ -120,18 +139,43 @@ public class MailContainer extends JsonResource {
 	 * 
 	 * @return The mail container.
 	 */
-	public MailContainer generateDotVariations(StringKeyValuePair emailCreds) {
+	public MailContainer generateDotVariations(StringKeyValuePair skvp) {
 		if (mailType != MailType.GMAIL_DOT_TRICK) {
 			System.err.println("Can not generate dot variations with mail type " + mailType.getName());
 			return this;
 		}
-		List<String> variations = MailUtil.generateDotVariations(emailCreds.getKey());
+		List<String> variations = MailUtil.generateDotVariations(skvp.getKey());
 		List<StringKeyValuePair> skvps = new ArrayList<>();
 		
 		for (int i = (variations.size() - 1); i >= 0; i--) {
-			skvps.add(new StringKeyValuePair(variations.get(i), emailCreds.getValue()));
+			skvps.add(new StringKeyValuePair(variations.get(i), skvp.getValue()));
 		}
-		return addEmailCreds(skvps);
+		emailCreds.addAll(skvps);
+		return this;
+	}
+	
+	/**
+	 * Filters the email credentials using a blacklist.
+	 * 
+	 * @param blacklistedAddresses The blacklisted addresses.
+	 * 
+	 * @return The container.
+	 */
+	public MailContainer filter(List<String> blacklistedAddresses) {
+		boolean changesMade = false;
+		
+		for (Iterator<StringKeyValuePair> it = emailCreds.iterator(); it.hasNext();) {
+			String address = it.next().getKey();
+			
+			if (blacklistedAddresses.contains(address)) {
+				it.remove();
+				changesMade = true;
+			}
+		}
+		if (changesMade) {
+			save();
+		}
+		return this;
 	}
 	
 	/**
@@ -140,9 +184,12 @@ public class MailContainer extends JsonResource {
 	 * @return The email connection.
 	 */
 	public MailClientConnection nextMailConnection() {
+		MailClientConnection conn = null;
+		
 		switch (mailType) {
 		case DISPOSABLE:
-			return MailManager.getSingleton().connectToTempMailClient();
+			conn = MailManager.getSingleton().connectToDisposableClient(det);
+			break;
 			
 		case GMAIL_DOT_TRICK:
 		case IMPORTED:
@@ -151,15 +198,21 @@ public class MailContainer extends JsonResource {
 			if (Objects.isNull(next)) {
 				return null;
 			}
-			return MailManager.getSingleton().connectToIMAPClient(mailType, next);
+			conn = MailManager.getSingleton().connectToIMAPClient(mailType, next);
+			break;
 			
 		case MANUAL:
-			return MailManager.getSingleton().connectToManualClient();
+			conn =  MailManager.getSingleton().connectToManualClient();
+			break;
 			
 		default:
 			System.err.println("No email client available for " + mailType.getName());
 			return null;
 		}
+		if (Objects.isNull(conn)) {
+			return nextMailConnection();
+		}
+		return conn;
 	}
 	
 	/**
@@ -209,7 +262,19 @@ public class MailContainer extends JsonResource {
 	 * @return The result.
 	 */
 	public boolean isEmpty() {
-		return getEmailCreds().isEmpty();
+		return (mailType == MailType.GMAIL_DOT_TRICK || mailType == MailType.IMPORTED) && getEmailCreds().isEmpty();
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(mailType.getName());
+		
+		if (Objects.nonNull(det)) {
+			sb.append(" - " + det.getName());
+		}
+		sb.append(" (" + getUUID() + ")");
+		return sb.toString();
 	}
  
 }

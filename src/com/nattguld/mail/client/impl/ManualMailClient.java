@@ -14,11 +14,9 @@ public class ManualMailClient extends MailClient {
 	
 	/**
 	 * Creates a new manual client.
-	 * 
-	 * @param creds The credentials.
 	 */
-	public ManualMailClient(StringKeyValuePair creds) {
-		super(creds);
+	public ManualMailClient() {
+		super(new StringKeyValuePair("manual", "manual"));
 	}
 
 	@Override
