@@ -56,7 +56,6 @@ public class MailManager extends JsonResourceManager<IMAPDetails> {
 	 */
 	private final List<MailClient> activeClients = new CopyOnWriteArrayList<>();
 	
-	
 	/**
 	 * Loads the default IMAP services.
 	 */
@@ -75,7 +74,7 @@ public class MailManager extends JsonResourceManager<IMAPDetails> {
 				break;
 				
 			case "Outlook":
-				add(new IMAPDetails(defaultService, true, "imap-mail.outlook.com", 993, "Inbox", "Junk"
+				add(new IMAPDetails(defaultService, true, "Outlook.office365.com", 993, "Inbox", "Junk"
 						, new String[] {"outlook", "hotmail"}));
 				break;
 				

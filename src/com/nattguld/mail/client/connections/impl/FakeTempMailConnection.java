@@ -11,6 +11,7 @@ import org.jsoup.nodes.Element;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.nattguld.data.json.JsonReader;
 import com.nattguld.http.content.EncType;
 import com.nattguld.http.content.bodies.FormBody;
 import com.nattguld.http.requests.impl.GetRequest;
@@ -48,13 +49,14 @@ public class FakeTempMailConnection extends DisposableMailConnection {
 			getClient().getLogger().warning("Failed to refresh emails (" + rr.getCode() + ")");
 			return null;
 		}
-		JsonObject respObj = rr.getAsJsonElement().getAsJsonObject();
-		int count = respObj.get("count").getAsInt();
+		JsonReader respObj = rr.getJsonReader();
+		
+		int count = respObj.getAsInt("count");
 		
 		if (count <= 0) {
 			return null;
 		}
-		JsonArray mailsArr = respObj.get("maillist").getAsJsonArray();
+		JsonArray mailsArr = respObj.getObject().get("maillist").getAsJsonArray();
 		String mailId = null;
 		
 		for (JsonElement el : mailsArr) {
@@ -88,8 +90,9 @@ public class FakeTempMailConnection extends DisposableMailConnection {
 			getClient().getLogger().error("Failed to open message (" + rr.getCode() + ")");
 			return null;
 		}
-		JsonObject msgResp = rr.getAsJsonElement().getAsJsonObject();
-		JsonObject mailDataObj = msgResp.get("maildata").getAsJsonObject();
+		JsonReader msgResp = rr.getJsonReader();
+		
+		JsonObject mailDataObj = msgResp.getObject().get("maildata").getAsJsonObject();
 		
 		String msgHtml = mailDataObj.get("html").getAsString();
 		

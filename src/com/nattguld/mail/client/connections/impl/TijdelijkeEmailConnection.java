@@ -11,6 +11,7 @@ import org.jsoup.nodes.Element;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.nattguld.data.json.JsonReader;
 import com.nattguld.http.content.EncType;
 import com.nattguld.http.requests.impl.GetRequest;
 import com.nattguld.http.response.RequestResponse;
@@ -43,8 +44,9 @@ public class TijdelijkeEmailConnection extends DisposableMailConnection {
 			getClient().getLogger().error("Failed to refresh emails (" + rr.getCode() + ")");
 			return null;
 		}
-		JsonObject respObj = rr.getAsJsonElement().getAsJsonObject();
-		JsonArray mailsArr = respObj.get("mails").getAsJsonArray();
+		JsonReader respObj = rr.getJsonReader();
+		
+		JsonArray mailsArr = respObj.getAsJsonArray("mails");
 		
 		if (mailsArr.size() <= 0) {
 			return null;

@@ -1,6 +1,6 @@
 package com.nattguld.mail.client.impl;
 
-import com.google.gson.JsonObject;
+import com.nattguld.data.json.JsonReader;
 import com.nattguld.http.HttpClient;
 import com.nattguld.http.content.EncType;
 import com.nattguld.http.requests.impl.GetRequest;
@@ -36,8 +36,8 @@ public class TijdelijkeEmailClient extends DisposableMailClient {
 			getLogger().error("Failed to create inbox (" + rr.getCode() + ")");
 			return null;
 		}
-		JsonObject respObj = rr.getAsJsonElement().getAsJsonObject();
-		String address = respObj.get("address").getAsString();
+		JsonReader respObj = rr.getJsonReader();
+		String address = respObj.getAsString("address");
 		return new StringKeyValuePair(address, username);
 	}
 	

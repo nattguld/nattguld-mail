@@ -1,6 +1,6 @@
 package com.nattguld.mail.client.impl;
 
-import com.google.gson.JsonObject;
+import com.nattguld.data.json.JsonReader;
 import com.nattguld.http.HttpClient;
 import com.nattguld.http.content.EncType;
 import com.nattguld.http.requests.impl.GetRequest;
@@ -46,8 +46,9 @@ public class FakeTempMailClient extends DisposableMailClient {
 			getLogger().error("Failed to request random email (" + rr.getCode() + ")");
 			return null;
 		}
-		JsonObject respObj = rr.getAsJsonElement().getAsJsonObject();
-		String username = respObj.get("url").getAsString();
+		JsonReader respObj = rr.getJsonReader();
+		
+		String username = respObj.getAsString("url");
 		
 		String emailAddress = username + "@" + getRandomDomain();
 		
