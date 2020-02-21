@@ -1,6 +1,7 @@
 eclipse.preferences.version=1
 encoding//src/com/nattguld/mail/MailManager.java=UTF-8
 encoding//src/com/nattguld/mail/client/impl/AsdasdMailClient.java=UTF-8
+encoding//src/com/nattguld/mail/client/impl/FakeMailClient.java=UTF-8
 encoding//src/com/nattguld/mail/client/impl/FakeTempMailClient.java=UTF-8
 encoding//src/com/nattguld/mail/client/impl/SuteJPClient.java=UTF-8
 encoding//src/com/nattguld/mail/client/impl/TijdelijkeEmailClient.java=UTF-8

@@ -56,6 +56,7 @@ public class IMAPClient extends MailClient {
 			
 			Properties properties = new Properties();
 			properties.put("mail.store.protocol", "imaps");
+			//properties.setProperty("mail.imap.ssl.enable", "true");
         
 			Session session = Session.getInstance(properties, null);
 			
@@ -72,7 +73,7 @@ public class IMAPClient extends MailClient {
 			
 		} catch (AuthenticationFailedException ex) {
 			ex.printStackTrace();
-			getLogger().error("Unable to use " + getCreds().getKey() + "! Check if the email has no checkpoints and if unsecure apps (gmail) is turned on.");
+			getLogger().error("Unable to use " + getCreds().getKey() + "! Check if the email has no checkpoints and if unsecure apps or IMAP access is turned on.");
 			getLogger().exception(ex);
             close();
             return false;

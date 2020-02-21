@@ -25,6 +25,16 @@ public abstract class MailClientConnection {
 	private MailClient client;
 	
 	
+	
+	/**
+	 * Creates a new email client connection.
+	 * 
+	 * @param client The email client.
+	 */
+	public MailClientConnection(MailClient client) {
+		this.client = client;
+	}
+	
 	/**
 	 * Gets a link from an email message.
 	 * 
@@ -124,16 +134,9 @@ public abstract class MailClientConnection {
 	 * Disconnects the connection to the email client.
 	 */
 	protected void disconnect() {
-		client.removeConnection(this);
-	}
-	
-	/**
-	 * Creates a new email client connection.
-	 * 
-	 * @param client The email client.
-	 */
-	public MailClientConnection(MailClient client) {
-		this.client = client;
+		if (Objects.nonNull(client)) {
+			client.removeConnection(this);
+		}
 	}
 	
 	/**

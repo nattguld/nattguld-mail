@@ -14,6 +14,7 @@ import com.nattguld.mail.client.MailClient;
 import com.nattguld.mail.client.connections.DisposableMailConnection;
 import com.nattguld.mail.client.connections.MailClientConnection;
 import com.nattguld.mail.client.connections.impl.AsdasdMailConnection;
+import com.nattguld.mail.client.connections.impl.FakeConnection;
 import com.nattguld.mail.client.connections.impl.FakeTempMailConnection;
 import com.nattguld.mail.client.connections.impl.IMAPConnection;
 import com.nattguld.mail.client.connections.impl.ManualConnection;
@@ -172,6 +173,15 @@ public class MailManager extends JsonResourceManager<IMAPDetails> {
 			ex.printStackTrace();
 		}
 		return null;
+	}
+
+	/**
+	 * Creates and retrieves a fake connection.
+	 * 
+	 * @return the fake connection.
+	 */
+	public MailClientConnection connectFakeClient() {
+		return new FakeConnection();
 	}
 	
 	/**

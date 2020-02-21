@@ -81,7 +81,7 @@ public class MailContainer extends JsonResource {
 		this.det = det;
 		this.emailCreds = emailCreds;
 		
-		if (mailType == MailType.DISPOSABLE || mailType == MailType.MANUAL) {
+		if (mailType == MailType.DISPOSABLE || mailType == MailType.MANUAL || mailType == MailType.FAKE) {
 			emailCreds.add(new StringKeyValuePair("na", "na"));
 		}
 	}
@@ -119,6 +119,15 @@ public class MailContainer extends JsonResource {
 	}
 	
 	/**
+	 * Retrieves the mail type.
+	 * 
+	 * @return The mail type.
+	 */
+	public MailType getMailType() {
+		return mailType;
+	}
+	
+	/**
 	 * Adds a new set of email credentials.
 	 * 
 	 * @param emailCreds The email credentials.
@@ -126,9 +135,10 @@ public class MailContainer extends JsonResource {
 	 * @return The mail container.
 	 */
 	public MailContainer addEmailCreds(StringKeyValuePair emailCreds) {
-		this.emailCreds.add(emailCreds);
-		
-		save();
+		if (mailType == MailType.GMAIL_DOT_TRICK || mailType == MailType.IMPORTED) {
+			this.emailCreds.add(emailCreds);
+			save();
+		}
 		return this;
 	}
 	
@@ -162,6 +172,9 @@ public class MailContainer extends JsonResource {
 	 * @return The container.
 	 */
 	public MailContainer filter(List<String> blacklistedAddresses) {
+		if (emailCreds.isEmpty()) {
+			return this;
+		}
 		boolean changesMade = false;
 		
 		for (Iterator<StringKeyValuePair> it = emailCreds.iterator(); it.hasNext();) {
@@ -187,6 +200,10 @@ public class MailContainer extends JsonResource {
 		MailClientConnection conn = null;
 		
 		switch (mailType) {
+		case FAKE:
+			conn = MailManager.getSingleton().connectFakeClient();
+			break;
+			
 		case DISPOSABLE:
 			conn = MailManager.getSingleton().connectToDisposableClient(det);
 			break;

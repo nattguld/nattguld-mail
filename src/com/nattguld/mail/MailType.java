@@ -11,7 +11,8 @@ public enum MailType {
 	DISPOSABLE("Disposable"),
 	GMAIL_DOT_TRICK("GMail Dot Trick"),
 	IMPORTED("Imported"),
-	MANUAL("Manual");
+	MANUAL("Manual"),
+	FAKE("Fake");
 	
 	
 	/**
